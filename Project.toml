@@ -5,7 +5,9 @@ authors = ["Fons van der Plas <fonsvdplas@gmail.com>"]
 version = "0.0.1"
 
 [deps]
+Comonicon = "863f3e99-da2a-4334-8734-de3dacbe5542"
 Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
 
 [compat]
 Pluto = "0.11"
+Comonicon = "0.5.6"

@@ -4,3 +4,4 @@
 precompile.jl
 build
 Manifest.toml
+deps/build.log
