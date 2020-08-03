@@ -13,7 +13,15 @@ julia> ]
 (v1.5) pkg> add https://github.com/fonsp/PlutoCLI.jl.git
 ```
 
-then add `~/.julia/bin` to your `PATH`.
+then add `~/.julia/bin` to your `PATH`. Or you can use [Comonicon](https://github.com/Roger-luo/Comonicon.jl)
+
+```julia
+using Comonicon.BuildTools; BuildTools.install_env_path()
+```
+
+to install the `PATH` and auto-completion `FPATH` automatically. If you don't have oh-my-zsh installed,
+to enable auto-commpletion you need to add `~/.julia/completions` to your `FPATH` and then add 
+`autoload -Uz compinit && compinit` to your `.zshrc`.
 
 ## Future
 
