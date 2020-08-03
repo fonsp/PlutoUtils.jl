@@ -1,2 +1,2 @@
-using Comonicon, PlutoCLI
-Comonicon.install(PlutoCLI)
+using Comonicon, PlutoUtils
+Comonicon.install(PlutoUtils)
