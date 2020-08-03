@@ -2,16 +2,31 @@
 
 Nifty scripts to go with Pluto.jl.
 
+## Pluto CLI
+
+_Launch [Pluto directly from the command line!_
+
+When installed, you can launch Pluto using the shell command `pluto`, and check the available options using `pluto --help`.
+
+```julia
+julia> ]
+(v1.5) pkg> add https://github.com/fonsp/PlutoCLI.jl.git
+```
+
+then add `~/.julia/bin` to your `PATH`.
+
+## Future
+
 This will contain:
 
--   the Pluto CLI - https://github.com/Roger-luo/PlutoCLI.jl/issues/2
--   notebook conversion tools: https://github.com/vdayanand/Jupyter2Pluto.jl
+-   [x] the Pluto CLI - https://github.com/Roger-luo/PlutoCLI.jl/issues/2
+-   [ ] notebook conversion tools: https://github.com/vdayanand/Jupyter2Pluto.jl
 
 and several deployment methods:
 
--   Docker - https://github.com/fonsp/Pluto.jl/pull/230
--   heroku - ...
--   binder - https://github.com/fonsp/vscode-binder
+-   [ ] Docker - https://github.com/fonsp/Pluto.jl/pull/230
+-   [ ] heroku - ...
+-   [ ] binder - https://github.com/fonsp/vscode-binder
 
 And perhaps in the future:
 
