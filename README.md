@@ -1,6 +1,6 @@
 # PlutoUtils.jl
 
-Nifty scripts to go with Pluto.jl.
+Nifty scripts to go with [Pluto.jl](https://github.com/fonsp/Pluto.jl).
 
 ## Pluto CLI
 
