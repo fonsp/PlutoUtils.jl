@@ -34,6 +34,7 @@ and several deployment methods:
 
 -   [ ] Docker - https://github.com/fonsp/Pluto.jl/pull/230
 -   [ ] heroku - ...
+-   [ ] JupyterHub extension - https://github.com/fonsp/vscode-binder
 -   [ ] binder - https://github.com/fonsp/vscode-binder
 
 And perhaps in the future:
