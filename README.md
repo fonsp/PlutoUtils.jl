@@ -65,4 +65,6 @@ And perhaps in the future:
 
 Some of this might move into Pluto itself - let's see how it goes!
 
+# License
+
 Because this repository will mostly be short little scripts, it uses the [Unlicense](./LICENSE), the most permissive license. This means that people can copy the utility functions and edit them to suit their needs, without having to worry about licensing. (This is the same license as the Pluto sample notebooks.) _If you want to contribute but you feel like this license is not approriate, open up an issue and we'll look at alternatives!_
