@@ -2,25 +2,46 @@
 
 Nifty scripts to go with [Pluto.jl](https://github.com/fonsp/Pluto.jl).
 
+Still work-in-progress, and very open to contributions!
+
+---
+
+## How to install
+
+This package is meant for people who already know what Pluto is, so head over to [fonsp/Pluto.jl](https://github.com/fonsp/Pluto.jl) if you're new!
+
+If you want to install the **Pluto CLI**, some **conversion scripts** (Jupyter, Literate), and more (see the list below), you can install PlutoUtils.jl:
+
+```julia
+julia> ]
+(v1.5) pkg> add https://github.com/fonsp/PlutoUtils.jl
+```
+
+---
+
+
 ## Pluto CLI
 
 _Launch [Pluto directly from the command line!_
 
 When installed, you can launch Pluto using the shell command `pluto`, and check the available options using `pluto --help`.
 
+If you haven't already, install PlutoUtils:
+
 ```julia
 julia> ]
-(v1.5) pkg> add https://github.com/fonsp/PlutoCLI.jl.git
+(v1.5) pkg> add https://github.com/fonsp/PlutoUtils.jl
 ```
 
 then add `~/.julia/bin` to your `PATH`. Or you can use [Comonicon](https://github.com/Roger-luo/Comonicon.jl)
 
 ```julia
-using Comonicon.BuildTools; BuildTools.install_env_path()
+julia> import PlutoUtils
+julia> PlutoUtils.Comonicon.BuildTools.install_env_path()
 ```
 
 to install the `PATH` and auto-completion `FPATH` automatically. If you don't have oh-my-zsh installed,
-to enable auto-commpletion you need to add `~/.julia/completions` to your `FPATH` and then add 
+to enable auto-completion you need to add `~/.julia/completions` to your `FPATH` and then add 
 `autoload -Uz compinit && compinit` to your `.zshrc`.
 
 ## Future
