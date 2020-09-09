@@ -1,13 +1,14 @@
 name = "PlutoUtils"
 uuid = "a5ec66cb-57bb-4ae5-9259-3342d9ed6c94"
 license = "Unlicense"
-authors = ["Fons van der Plas <fonsvdplas@gmail.com>"]
-version = "0.0.1"
+authors = ["Fons van der Plas <fonsvdplas@gmail.com> and contributors"]
+version = "0.1.0"
 
 [deps]
 Comonicon = "863f3e99-da2a-4334-8734-de3dacbe5542"
 Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
 
 [compat]
-Comonicon = "0.5.6, 0.6"
+Comonicon = "0.6"
 Pluto = "0.11"
+julia = "1.5"
