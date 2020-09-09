@@ -20,7 +20,7 @@ open a Pluto notebook at given path.
 
 - `-l,--launchbrowser`: add this flag to launch browser.
 """
-@cast function open(file; host="127.0.0.1", port::Int=1234, launchbrowser::Bool=false, project="")
+@cast function open(file; host="127.0.0.1", port::Int=1234, launchbrowser::Bool=false, project=nothing)
     isfile(file) || error("file $file does not exist!")
     s = Pluto.ServerSession()
     nb = Pluto.SessionActions.open(s, file; project=project)
@@ -44,8 +44,9 @@ start Pluto notebook server.
 
 - `-l,--launchbrowser`: add this flag to launch browser.
 """
-@cast function run(;host="127.0.0.1", port::Int=1234, launchbrowser::Bool=false, project="")
-    Pluto.run(host, port; launchbrowser=launchbrowser, project=project)
+@cast function run(;host="127.0.0.1", port::Int=1234, launchbrowser::Bool=false, project=nothing)
+    s = ServerSession(default_environment_path=project)
+    Pluto.run(host, port; launchbrowser=launchbrowser, session=s)
 end
 
 
