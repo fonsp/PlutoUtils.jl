@@ -8,7 +8,7 @@ ENV JULIA_NUM_THREADS = 100
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
-    && apt-get -y install gcc \
+    && apt-get -y install clang \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -m -d ${USER_HOME_DIR} ${USER} \
@@ -18,7 +18,7 @@ WORKDIR ${USER_HOME_DIR}
 COPY precompile_sysimage.jl ${USER_HOME_DIR}
 
 RUN julia -e 'using Pkg; \
-    Pkg.add(["Pluto", "PlutoUI", "Plots", "PackageCompiler", "JSON"]); \
+    Pkg.add(["Pluto", "PlutoUI", "Plots", "PackageCompiler"]); \
     using PackageCompiler; \
     create_sysimage([:Pluto, :PlutoUI, :Plots]; precompile_execution_file="precompile_sysimage.jl", replace_default=true)' \
     && rm /usr/local/julia/lib/julia/sys.so.backup
