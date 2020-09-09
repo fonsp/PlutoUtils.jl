@@ -20,14 +20,13 @@ open a Pluto notebook at given path.
 
 - `-l,--launchbrowser`: add this flag to launch browser.
 """
-@cast function open(file; host="127.0.0.1", port::Int=1234, launchbrowser::Bool=false, project=nothing)
+@cast function open(file; host="127.0.0.1", port::Int=1234, launchbrowser::Bool=false, project=".")
     isfile(file) || error("file $file does not exist!")
     s = Pluto.ServerSession()
     nb = Pluto.SessionActions.open(s, file; project=project)
 
     @info "you can open the notebook at: http://localhost:$port/edit?id=$(nb.notebook_id)"
     Pluto.run(host, port;launchbrowser=launchbrowser, session=s)
-
     return
 end
 
@@ -50,6 +49,6 @@ start Pluto notebook server.
 end
 
 
-@main doc="Pluto CLI - Lightweight reactive notebooks for Julia"
+@main name="pluto" doc="Pluto CLI - Lightweight reactive notebooks for Julia"
 
 end
