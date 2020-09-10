@@ -15,4 +15,4 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build the Docker image
-      run: docker build --file ./docker/precompiled/Dockerfile --tag shashankp/plutojl:$(date +%s)
+      run: docker build ./docker/precompiled/ --file ./docker/precompiled/Dockerfile --tag shashankp/plutojl:$(date +%s)
