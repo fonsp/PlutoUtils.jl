@@ -15,12 +15,13 @@ RUN useradd -m -d ${USER_HOME_DIR} ${USER} \
     && mkdir ${NOTEBOOK_DIR}
 
 WORKDIR ${USER_HOME_DIR}
-COPY precompile_sysimage.jl ${USER_HOME_DIR}
+COPY warmup.jl ${USER_HOME_DIR}
 
 RUN julia -e 'using Pkg; \
     Pkg.add(["Pluto", "PlutoUI", "Plots", "PackageCompiler"]); \
+	Pkg.precompile(); \
     using PackageCompiler; \
-    create_sysimage([:Pluto, :PlutoUI, :Plots]; precompile_execution_file="precompile_sysimage.jl", replace_default=true)' \
+    create_sysimage([:Pluto, :PlutoUI]; precompile_execution_file="warmup.jl", replace_default=true)' \
     && rm /usr/local/julia/lib/julia/sys.so.backup
 
 COPY docker_main.jl ${USER_HOME_DIR}
