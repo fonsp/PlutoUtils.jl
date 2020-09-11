@@ -31,7 +31,7 @@ RUN useradd -m -d ${USER_HOME_DIR} ${USER} \
     && mkdir ${NOTEBOOK_DIR}
 
 WORKDIR ${USER_HOME_DIR}
-COPY *.jl ${USER_HOME_DIR}/
+COPY *startup.jl ${USER_HOME_DIR}/
 
 COPY --from=builder /usr/local/julia/lib/julia/sys.so /usr/local/julia/lib/julia/sys.so
 RUN julia prestartup.jl

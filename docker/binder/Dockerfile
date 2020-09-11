@@ -13,18 +13,19 @@ RUN apt-get update \
     && pip3 install jupyter \
     && pip3 install jupyter-server-proxy
 
-RUN usermod -l jovyan pluto
+RUN usermod -l ${NB_USER} pluto
 COPY . ${HOME}
 RUN chown -R ${NB_UID} ${HOME}
 
 USER ${NB_USER}
 WORKDIR ${HOME}
-RUN pip3 install .
 
+RUN pip3 install .
 EXPOSE 8080
 
 CMD [ "ls" ]
 
-#docker build . --tag shashankpv/plutojl-binder:latest
-#docker run -it -p 8080:8080 shashankpv/plutojl-binder:latest jupyter notebook --ip=0.0.0.0 --port=8080
+#docker build . --tag shashankpv/plutojl-binder:v2
+#docker run -it -p 8080:8080 shashankpv/plutojl-binder:v2 jupyter notebook --ip=0.0.0.0 --port=8080
+#docker push shashankpv/plutojl-binder:v2
 
