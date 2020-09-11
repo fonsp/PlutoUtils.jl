@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build plutojl
-        run: docker build ./docker/precompiled --file ./docker/precompiled/Dockerfile --tag $IMAGE_NAME:$VERSION-precompiled
+        run: docker build ./docker/precompiled --file ./docker/precompiled/Dockerfile --tag $IMAGE_NAME:0.$GITHUB_RUN_NUMBER-precompiled
             
       - name: Push plutojl to DockerHub
         uses: docker/build-push-action@v1.1.1
@@ -30,11 +30,11 @@ jobs:
           username: shashankpv
           password: ${{ secrets.DOCKER_PAT }}
           repository: plutojl
-          tags: $VERSION-precompiled,  
+          tags: 0.$GITHUB_RUN_NUMBER-precompiled,  
           dockerfile: ./docker/precompiled/Dockerfile 
 
       - name: Build plutojl-binder
-        run: docker build ./docker/binder --file ./docker/binder/Dockerfile --tag $BINDER_IMAGE_NAME:$VERSION-binder
+        run: docker build ./docker/binder --file ./docker/binder/Dockerfile --tag $BINDER_IMAGE_NAME:0.$GITHUB_RUN_NUMBER-binder
 
       - name: Push plutojl-binder to DockerHub
         uses: docker/build-push-action@v1.1.1
@@ -42,5 +42,5 @@ jobs:
           username: shashankpv
           password: ${{ secrets.DOCKER_PAT }}
           repository: plutojl-binder
-          tags: $VERSION-binder,  
+          tags: 0.$GITHUB_RUN_NUMBER-binder,  
           dockerfile: ./docker/binder/Dockerfile 
