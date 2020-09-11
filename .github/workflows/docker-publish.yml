@@ -28,7 +28,8 @@ jobs:
           password: ${{ secrets.DOCKER_PAT }}
           path: ./docker/precompiled
           repository: plutojl 
-          dockerfile: ./docker/precompiled/Dockerfile 
+          tags: precompiled
+
 
       - name: Push plutojl-binder to DockerHub
         uses: docker/build-push-action@v1.1.1
@@ -37,4 +38,5 @@ jobs:
           password: ${{ secrets.DOCKER_PAT }}
           path: ./docker/binder
           repository: plutojl-binder
-          dockerfile: ./docker/binder/Dockerfile 
+          tags: 0.1
+
