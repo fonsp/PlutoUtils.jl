@@ -21,7 +21,7 @@ RUN julia -e 'using Pkg; \
     Pkg.add(["Pluto", "PlutoUI", "Plots", "PackageCompiler"]); \
 	Pkg.precompile(); \
     using PackageCompiler; \
-    create_sysimage([:Pluto, :PlutoUI]; precompile_execution_file="warmup.jl", replace_default=true)' \
+    create_sysimage([:Pluto, :PlutoUI]; precompile_execution_file="warmup.jl", replace_default=true, cpu_target = PackageCompiler.default_app_cpu_target())' \
     && rm /usr/local/julia/lib/julia/sys.so.backup
 
 COPY docker_main.jl ${USER_HOME_DIR}
