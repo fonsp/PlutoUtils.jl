@@ -1,4 +1,4 @@
-FROM shashankpv/plutojl:multistage
+FROM shashankpv/plutojl:precompiled
 
 ARG NB_USER=jovyan
 ARG NB_UID=1000
