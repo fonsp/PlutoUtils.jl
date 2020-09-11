@@ -29,8 +29,7 @@ jobs:
         with:
           username: shashankpv
           password: ${{ secrets.DOCKER_PAT }}
-          repository: plutojl
-          tags: precompiled,  
+          repository: plutojl 
           dockerfile: ./docker/precompiled/Dockerfile 
 
       - name: Build plutojl-binder
@@ -42,5 +41,4 @@ jobs:
           username: shashankpv
           password: ${{ secrets.DOCKER_PAT }}
           repository: plutojl-binder
-          tags: binder,  
           dockerfile: ./docker/binder/Dockerfile 
