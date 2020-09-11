@@ -24,8 +24,3 @@ RUN pip3 install .
 EXPOSE 8080
 
 CMD [ "ls" ]
-
-#docker build . --tag shashankpv/plutojl-binder:v2
-#docker run -it -p 8080:8080 shashankpv/plutojl-binder:v2 jupyter notebook --ip=0.0.0.0 --port=8080
-#docker push shashankpv/plutojl-binder:v2
-
