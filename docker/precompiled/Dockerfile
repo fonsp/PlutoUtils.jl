@@ -15,8 +15,8 @@ RUN useradd -m -d ${USER_HOME_DIR} ${USER} \
     && mkdir ${NOTEBOOK_DIR}
 
 WORKDIR ${USER_HOME_DIR}
-COPY create_sysimage.jl ${USER_HOME_DIR}/
-COPY precompile.jl ${USER_HOME_DIR}/
+COPY ./docker/precompiled/create_sysimage.jl ${USER_HOME_DIR}/
+COPY ./docker/precompiled/precompile.jl ${USER_HOME_DIR}/
 
 RUN julia create_sysimage.jl
 RUN julia precompile.jl
@@ -33,8 +33,8 @@ RUN useradd -m -d ${USER_HOME_DIR} ${USER} \
     && mkdir ${NOTEBOOK_DIR}
 
 WORKDIR ${USER_HOME_DIR}
-COPY prestartup.jl ${USER_HOME_DIR}/
-COPY startup.jl ${USER_HOME_DIR}/
+COPY ./docker/precompiled/prestartup.jl ${USER_HOME_DIR}/
+COPY ./docker/precompiled/startup.jl ${USER_HOME_DIR}/
 
 COPY --from=builder /usr/local/julia/lib/julia/sys.so /usr/local/julia/lib/julia/sys.so
 RUN julia prestartup.jl
