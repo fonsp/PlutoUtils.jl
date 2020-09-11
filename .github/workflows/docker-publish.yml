@@ -20,25 +20,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Build plutojl
-        run: docker build ./docker/precompiled --file ./docker/precompiled/Dockerfile --tag $IMAGE_NAME:precompiled
-            
+    
       - name: Push plutojl to DockerHub
         uses: docker/build-push-action@v1.1.1
         with:
           username: shashankpv
           password: ${{ secrets.DOCKER_PAT }}
+          path: ./docker/precompiled
           repository: plutojl 
           dockerfile: ./docker/precompiled/Dockerfile 
-
-      - name: Build plutojl-binder
-        run: docker build ./docker/binder --file ./docker/binder/Dockerfile --tag $BINDER_IMAGE_NAME:binder
 
       - name: Push plutojl-binder to DockerHub
         uses: docker/build-push-action@v1.1.1
         with:
           username: shashankpv
           password: ${{ secrets.DOCKER_PAT }}
+          path: ./docker/binder
           repository: plutojl-binder
           dockerfile: ./docker/binder/Dockerfile 
