@@ -27,7 +27,7 @@ jobs:
           username: shashankpv
           password: ${{ secrets.DOCKER_PAT }}
           path: ./docker/precompiled
-          repository: plutojl 
+          repository: shashankpv/plutojl 
           tags: precompiled
 
 
@@ -37,6 +37,6 @@ jobs:
           username: shashankpv
           password: ${{ secrets.DOCKER_PAT }}
           path: ./docker/binder
-          repository: plutojl-binder
+          repository: shashankpv/plutojl-binder
           tags: 0.1
 
