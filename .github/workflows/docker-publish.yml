@@ -1,4 +1,4 @@
-name: Docker
+name: Docker build & publish
 
 on:
   push:
@@ -9,16 +9,11 @@ on:
     # Publish `v1.2.3` tags as releases.
     tags:
       - v*
-
-  # Run tests for any PRs.
-  pull_request:
-
 env:
   IMAGE_NAME: plutojl
+  BINDER_IMAGE_NAME: plutojl-binder
 
 jobs:
-  # Push image to GitHub Packages.
-  # See also https://docs.docker.com/docker-hub/builds/
   push:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
@@ -26,30 +21,26 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build image
-        run: docker build ./docker/precompiled --file ./docker/precompiled/Dockerfile --tag $IMAGE_NAME
+      - name: Build plutojl
+        run: docker build ./docker/precompiled --file ./docker/precompiled/Dockerfile --tag $IMAGE_NAME:$VERSION-precompiled
+            
+      - name: Push plutojl to DockerHub
+        uses: docker/build-push-action@v1.1.1
+        with:
+          username: shashankpv
+          password: ${{ secrets.DOCKER_PAT }}
+          repository: plutojl
+          tags: $VERSION-precompiled,  
+          dockerfile: ./docker/precompiled/Dockerfile 
 
-      - name: Log into GitHub Container Registry
-        run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Build plutojl-binder
+        run: docker build ./docker/binder --file ./docker/binder/Dockerfile --tag $BINDER_IMAGE_NAME:$VERSION-binder
 
-      - name: Push image to GitHub Container Registry
-        run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=latest
-
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION-precompiled
-          docker push $IMAGE_ID:$VERSION
+      - name: Push plutojl-binder to DockerHub
+        uses: docker/build-push-action@v1.1.1
+        with:
+          username: shashankpv
+          password: ${{ secrets.DOCKER_PAT }}
+          repository: plutojl-binder
+          tags: $VERSION-binder,  
+          dockerfile: ./docker/binder/Dockerfile 
