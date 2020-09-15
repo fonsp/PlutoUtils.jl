@@ -2,54 +2,116 @@ module PlutoUtils
 
 using Comonicon
 using Pluto
+using ExprTools
+using Pluto.Configuration: Options, CompilerOptions, ServerOptions, from_flat_kwargs
+using Pluto: open_in_default_browser, Notebook
 
+include("patch.jl")
+
+# all the following has a prefix JULIA_PLUTO
+const PLUTO_ENV_VARIABLES = [
+    "PROJECT",
+    "WORKSPACE_USE_DISTRIBUTED",
+    "RUN_NOTEBOOK_ON_LOAD",
+    "PLUTO_WORKING_DIRECTORY",
+]
+
+_get_kw_name(x::Symbol) = x
+function _get_kw_name(ex::Expr)
+    if ex.head === :kw
+        return _get_kw_name(ex.args[1])
+    elseif ex.head === :(::)
+        return _get_kw_name(ex.args[1])
+    else
+        error("invalid kwargs expression: $ex")
+    end
+end
+
+function read_env(env::AbstractDict = ENV)
+    for key in PLUTO_ENV_VARIABLES
+        if haskey(env, "JULIA_PLUTO_" * key)
+            return env[key]
+        end
+    end
+end
+
+# both `run` and `open` can accepet these options
+const CLI_OPTIONS = [
+    Expr(:kw, :(host::String), "127.0.0.1"),
+    Expr(:kw, :(port::Int), 1234),
+    Expr(:kw, :(launch_browser::Bool), true),
+    Expr(:kw, :(project::String), "@."),
+    Expr(:kw, :sysimage, nothing),
+]
+
+@static if VERSION > v"1.5.0-"
+    push!(CLI_OPTIONS, Expr(:kw, :threads, nothing))
+end
+
+const CLI_OPTION_NAMES = map(_get_kw_name, CLI_OPTIONS)
+
+const CLI_OPTION_DOCS = """
+- `--host <ip>`: IP address of the host.
+- `-p, --port <int>`: port you want to specify.
+- `--launch-browser <bool>`: launch browser automatically or not.
+- `--project <path>`: specify a project environment to run.
+- `--sysimage <path>`: specify the path of a system image to use.
+$(if VERSION > v"1.5.0-"
+"- `-t, --threads <int>`: specify number of threads."
+end
+)
 """
-open a Pluto notebook at given path.
 
-# Arguments
-
-- `file`: file path of the Pluto notebook.
-
-# Options
-
-- `--host <ip>`: default is 127.0.0.1 (localhost)
-- `-p,--port <int>`: port you want to specify, default is 1234
-- `--project <path>`: notebook project path, default is Julia's default global environment.
-
-# Flags
-
-- `-l,--launchbrowser`: add this flag to launch browser.
-"""
-@cast function open(file; host="127.0.0.1", port::Int=1234, launchbrowser::Bool=false, project=nothing)
+defs = Dict{Symbol, Any}()
+defs[:name] = :open
+defs[:args] = [:(file::String)]
+defs[:kwargs] = CLI_OPTIONS
+defs[:body] = quote
     isfile(file) || error("file $file does not exist!")
-    s = Pluto.ServerSession()
-    config = Pluto.ServerConfiguration(launch_browser=launchbrowser)
-
-    nb = Pluto.SessionActions.open(s, file; project=project)
-    println("you can open the notebook at: http://localhost:$port/edit?id=$(nb.notebook_id)")
-    Pluto.run(host, port;configuration=config, session=s)
-    return
+    # from_flat_kwargs(;host=host, port=port, launch_browser=false, ...)
+    options = $(Expr(:call, :from_flat_kwargs, Expr(:parameters, [Expr(:kw, each, each) for each in CLI_OPTION_NAMES]...)))
+    session = Pluto.ServerSession(;options=options)
+    # we overwrite the notebook options temporarily since
+    # this session will be used for this notebook only
+    nb = Pluto.SessionActions.open(session, file; compiler_options=nothing)
+    return run_with_notebook_open(session, nb)
 end
 
-"""
-start Pluto notebook server.
+@eval begin
+    """
+    open a Pluto notebook at given path.
 
-# Options
+    # Args
 
-- `--host <ip>`: default is 127.0.0.1 (localhost)
-- `-p,--port <int>`: port you want to specify, default is 1234
-- `--project <path>`: custom project path, default is Julia's default global environment.
+    - `file`: file path of the Pluto notebook.
 
-# Flags
+    # Options
 
-- `-l,--launchbrowser`: add this flag to launch browser.
-"""
-@cast function run(;host="127.0.0.1", port::Int=1234, launchbrowser::Bool=false, project=nothing)
-    config = Pluto.ServerConfiguration(launch_browser=launchbrowser)
-    s = ServerSession(default_environment_path=project)
-    Pluto.run(host, port; configuration=config, session=s)
+    $(CLI_OPTION_DOCS)
+    """
+    @cast $(combinedef(defs))
 end
 
+defs = Dict{Symbol, Any}()
+defs[:name] = :run
+defs[:args] = []
+defs[:kwargs] = CLI_OPTIONS
+defs[:body] = quote
+    options = $(Expr(:call, :from_flat_kwargs, Expr(:parameters, [Expr(:kw, each, each) for each in CLI_OPTION_NAMES]...)))
+    s = Pluto.ServerSession(;options=options)
+    return Pluto.run(s)
+end
+
+@eval begin
+    """
+    start Pluto notebook server.
+
+    # Options
+
+    $(CLI_OPTION_DOCS)
+    """
+    @cast $(combinedef(defs))
+end
 
 @main name="pluto" doc="Pluto CLI - Lightweight reactive notebooks for Julia"
 
