@@ -6,10 +6,10 @@ RUN apt-get update \
 
 ENV USER pluto
 ENV USER_HOME_DIR /home/${USER}
-ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND noninteractive
 ENV JULIA_DEPOT_PATH ${USER_HOME_DIR}/.julia
 ENV NOTEBOOK_DIR ${USER_HOME_DIR}/notebooks
-ENV JULIA_NUM_THREADS=100
+ENV JULIA_NUM_THREADS 100
 
 RUN useradd -m -d ${USER_HOME_DIR} ${USER} \
     && mkdir ${NOTEBOOK_DIR}
@@ -24,10 +24,10 @@ RUN julia precompile.jl
 FROM julia:latest
 ENV USER pluto
 ENV USER_HOME_DIR /home/${USER}
-ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND noninteractive
 ENV JULIA_DEPOT_PATH ${USER_HOME_DIR}/.julia
 ENV NOTEBOOK_DIR ${USER_HOME_DIR}/notebooks
-ENV JULIA_NUM_THREADS=100
+ENV JULIA_NUM_THREADS 100
 
 RUN useradd -m -d ${USER_HOME_DIR} ${USER} \
     && mkdir ${NOTEBOOK_DIR}
