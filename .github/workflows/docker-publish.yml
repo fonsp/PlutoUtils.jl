@@ -1,0 +1,49 @@
+name: Docker build & publish
+
+on:
+  push:
+    # Publish `master` as Docker `latest` image.
+    branches:
+      - master
+
+    # Publish `v1.2.3` tags as releases.
+    tags:
+      - v*
+env:
+  IMAGE_NAME: plutojl
+  BINDER_IMAGE_NAME: plutojl-binder
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v2
+    
+      - name: Push plutojl:precompiled to DockerHub
+        uses: docker/build-push-action@v1.1.1
+        with:
+          username: plutojl
+          password: ${{ secrets.DOCKER_PAT }}
+          path: ./docker/precompiled
+          repository: plutojl/pluto 
+          tags: precompiled
+
+      - name: Push plutojl:default to DockerHub
+        uses: docker/build-push-action@v1.1.1
+        with:
+          username: plutojl
+          password: ${{ secrets.DOCKER_PAT }}
+          path: ./docker/default
+          repository: plutojl/pluto 
+          tags: latest
+
+      - name: Push plutojl-binder to DockerHub
+        uses: docker/build-push-action@v1.1.1
+        with:
+          username: plutojl
+          password: ${{ secrets.DOCKER_PAT }}
+          path: ./docker/binder
+          repository: plutojl/pluto-binder
+          tags: 0.1
