@@ -12,9 +12,8 @@ RUN useradd -m -d ${USER_HOME_DIR} ${USER} \
 COPY prestartup.jl ${USER_HOME_DIR}/
 COPY startup.jl ${USER_HOME_DIR}/
 
-RUN julia ${USER_HOME_DIR}/prestartup.jl
-
-RUN chown -R ${USER} ${USER_HOME_DIR}
+RUN julia ${USER_HOME_DIR}/prestartup.jl \
+    && chown -R ${USER} ${USER_HOME_DIR}
 USER ${USER}
 
 EXPOSE 1234
