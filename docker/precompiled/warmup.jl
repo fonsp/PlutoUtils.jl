@@ -3,6 +3,8 @@
 import Pluto
 
 session = Pluto.ServerSession()
+session.options.server.port = 40404
+session.options.security.require_secret_for_access = false
 
 path = tempname()
 original = joinpath(pathof(Pluto) |> dirname |> dirname, "sample", "Tower of Hanoi.jl")
@@ -20,7 +22,7 @@ Pluto.update_save_run!(session, nb, nb.cells; run_async=false, prerender_text=tr
 
 @info "Starting HTTP server"
 # next, we'll run the HTTP server which needs a bit of nasty code
-t = @async Pluto.run(40404; session=session)
+t = @async Pluto.run(session)
 
 sleep(5)
 download("http://localhost:40404/")
