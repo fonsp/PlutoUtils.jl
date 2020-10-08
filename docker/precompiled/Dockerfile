@@ -34,9 +34,8 @@ COPY prestartup.jl ${USER_HOME_DIR}/
 COPY startup.jl ${USER_HOME_DIR}/
 
 COPY --from=builder /usr/local/julia/lib/julia/sys.so /usr/local/julia/lib/julia/sys.so
-RUN julia prestartup.jl
-
-RUN chown -R ${USER} ${USER_HOME_DIR}
+RUN julia prestartup.jl \
+    && chown -R ${USER} ${USER_HOME_DIR}
 USER ${USER}
 
 EXPOSE 1234
