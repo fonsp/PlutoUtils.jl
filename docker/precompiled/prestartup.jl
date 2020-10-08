@@ -1,3 +1,3 @@
 using Pkg
-Pkg.add(["Pluto", "PlutoUI", "Plots"]) # "Images", "ImageIO", "ImageMagick"])
+Pkg.add(["Pluto", "PlutoUI", "Plots"])
 Pkg.precompile()
