@@ -2,6 +2,5 @@ name = "pluto"
 
 [install]
 completion=true
-export_path=true
 quiet=false
 optimize=2

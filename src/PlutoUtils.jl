@@ -113,6 +113,7 @@ end
     @cast $(combinedef(defs))
 end
 
-@main name="pluto" doc="Pluto CLI - Lightweight reactive notebooks for Julia"
+"Pluto CLI - Lightweight reactive notebooks for Julia"
+@main
 
 end
