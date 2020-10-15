@@ -21,21 +21,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
     
-      - name: Push plutojl:precompiled to DockerHub
+      - name: Push plutojl:latest to DockerHub
         uses: docker/build-push-action@v1.1.1
         with:
           username: fonsp
           password: ${{ secrets.DOCKER_PAT }}
           path: ./docker/precompiled
-          repository: plutojl/pluto 
-          tags: precompiled
-
-      - name: Push plutojl:default to DockerHub
-        uses: docker/build-push-action@v1.1.1
-        with:
-          username: fonsp
-          password: ${{ secrets.DOCKER_PAT }}
-          path: ./docker/default
           repository: plutojl/pluto 
           tags: latest
 
