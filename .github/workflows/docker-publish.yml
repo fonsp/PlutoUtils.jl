@@ -24,7 +24,7 @@ jobs:
       - name: Push plutojl:precompiled to DockerHub
         uses: docker/build-push-action@v1.1.1
         with:
-          username: plutojl
+          username: fonsp
           password: ${{ secrets.DOCKER_PAT }}
           path: ./docker/precompiled
           repository: plutojl/pluto 
@@ -33,7 +33,7 @@ jobs:
       - name: Push plutojl:default to DockerHub
         uses: docker/build-push-action@v1.1.1
         with:
-          username: plutojl
+          username: fonsp
           password: ${{ secrets.DOCKER_PAT }}
           path: ./docker/default
           repository: plutojl/pluto 
@@ -42,7 +42,7 @@ jobs:
       - name: Push plutojl-binder to DockerHub
         uses: docker/build-push-action@v1.1.1
         with:
-          username: plutojl
+          username: fonsp
           password: ${{ secrets.DOCKER_PAT }}
           path: ./docker/binder
           repository: plutojl/pluto-binder
