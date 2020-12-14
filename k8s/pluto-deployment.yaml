@@ -5,7 +5,7 @@ metadata:
   labels:
     app: pluto
 spec:
-  replicas: 4
+  replicas: 2
   selector:
     matchLabels:
       app: pluto
@@ -14,6 +14,16 @@ spec:
       labels:
         app: pluto
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - pluto
+            topologyKey: "kubernetes.io/hostname"
       containers:
       - name: pluto-latest
         image: registry.digitalocean.com/pluto-docker-images/pluto
