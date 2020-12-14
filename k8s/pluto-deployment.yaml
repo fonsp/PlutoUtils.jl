@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pluto-deployment
+  labels:
+    app: pluto
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: pluto
+  template:
+    metadata:
+      labels:
+        app: pluto
+    spec:
+      containers:
+      - name: pluto-latest
+        image: registry.digitalocean.com/pluto-docker-images/pluto
+        ports:
+        - containerPort: 1234
