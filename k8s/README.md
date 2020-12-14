@@ -1,5 +1,7 @@
 # Create a k8s cluster with pods that run pluto
 
+Work in progress -- contact us if you are insterested, these instructions might not be useful for your use case yet.
+
 ## Container
 
 We use the dockerfile of this repo
