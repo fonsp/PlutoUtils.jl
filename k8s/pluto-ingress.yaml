@@ -3,9 +3,16 @@ kind: Ingress
 metadata:
   name: pluto-test-ingress
   annotations:
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "60"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "60"
 spec:
-  backend:
-    serviceName: pluto-service
-    servicePort: 80
+  rules:
+  - host: margo.plutojl.org
+    http:
+      paths:
+      - backend:
+          serviceName: pluto-service
+          servicePort: 80
+        path: /
