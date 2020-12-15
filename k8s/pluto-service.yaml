@@ -3,6 +3,11 @@ kind: Service
 metadata:
   name: pluto-service
 spec:
+  clusterIP: "None"
+  sessionAffinity: "ClientIP"
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 300
   selector:
     app: pluto
   ports:
