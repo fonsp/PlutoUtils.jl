@@ -1,0 +1,4 @@
+.env
+.env_prod
+sessions.json
+node_modules/
