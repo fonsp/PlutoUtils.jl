@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pluto-deployment
+  labels:
+    app: pluto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pluto
+  template:
+    metadata:
+      labels:
+        app: pluto
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - pluto
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: pluto-latest
+        image: pluto-default:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 1234

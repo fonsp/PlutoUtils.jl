@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: pluto-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "60"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "60"
+spec:
+  rules:
+  - host: margo.plutojl.org
+    http:
+      paths:
+      - backend:
+          serviceName: pluto-service
+          servicePort: 80
+        path: /
