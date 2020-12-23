@@ -77,7 +77,7 @@ app.get('/callback/github', (req, res) => {
                 res.status(400).send('ERROR: No access token was provided by GitHub');
                 return;
             }
-            res.redirect((req.session.redirect_url || 'http://localhost:1234/auth/github') + '?token=' + parsedRes.access_token);
+            res.redirect((req.session.redirect_url || 'http://localhost:1234/auth_github') + '?ghtoken=' + parsedRes.access_token);
         });
     });
     ghReq.write(postData);

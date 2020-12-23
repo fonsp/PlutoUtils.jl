@@ -9,7 +9,7 @@ metadata:
     nginx.ingress.kubernetes.io/session-cookie-max-age: "60"
 spec:
   rules:
-  - host: margo.plutojl.org
+  - host:
     http:
       paths:
       - backend:

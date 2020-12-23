@@ -30,3 +30,8 @@ For example assuming your PWD is the same as this readme's parent:
 ```
 kubectl apply -f pluto-deployment.yaml
 ```
+
+To access the deployment on your local machine, run the following command to port forward nginx:
+```
+kubectl port-forward -n ingress-nginx service/ingress-nginx-controller 80:80
+```
