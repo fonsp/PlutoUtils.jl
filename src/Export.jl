@@ -12,7 +12,7 @@ myhash = base64encode ∘ sha256
 
 
 
-function export_paths(notebook_paths::Vector{String}; export_dir=".", kwargs...)
+function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_temp_before_running=true, kwargs...)
     export_dir = Pluto.tamepath(export_dir)
 
     options = Pluto.Configuration.from_flat_kwargs(; kwargs...)
@@ -21,8 +21,12 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", kwargs...)
     for path in notebook_paths
         @info "Opening $(path)"
         hash = myhash(read(path))
-        newpath = tempname()
-        write(newpath, read(path))
+        if copy_to_temp_before_running
+            newpath = tempname()
+            write(newpath, read(path))
+        else
+            newpath = path
+        end
         nb = Pluto.SessionActions.open(session, newpath; run_async=false)
 
         @info "Ready $(path)" hash
