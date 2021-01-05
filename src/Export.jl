@@ -88,7 +88,7 @@ function generate_baked_html(notebook::Pluto.Notebook; version=nothing)
 		"href=\"./" => "href=\"$(cdn_root)"),
         "src=\"./" => "src=\"$(cdn_root)")
     
-    result = replace(result, 
+    result = replace(cdnified, 
         "<!-- [automatically generated launch parameters can be inserted here] -->" => 
         """
         <script>
