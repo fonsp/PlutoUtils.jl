@@ -7,6 +7,7 @@ using Pluto.Configuration: Options, CompilerOptions, ServerOptions, from_flat_kw
 using Pluto: open_in_default_browser, Notebook
 
 include("patch.jl")
+include("Export.jl")
 
 # all the following has a prefix JULIA_PLUTO
 const PLUTO_ENV_VARIABLES = [
@@ -62,7 +63,7 @@ end
 )
 """
 
-defs = Dict{Symbol, Any}()
+defs = Dict{Symbol,Any}()
 defs[:name] = :open
 defs[:args] = [:(file::String)]
 defs[:kwargs] = CLI_OPTIONS
@@ -92,7 +93,7 @@ end
     @cast $(combinedef(defs))
 end
 
-defs = Dict{Symbol, Any}()
+defs = Dict{Symbol,Any}()
 defs[:name] = :run
 defs[:args] = []
 defs[:kwargs] = CLI_OPTIONS
