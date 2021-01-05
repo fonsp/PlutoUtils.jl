@@ -41,9 +41,9 @@ function create_default_index(;export_dir=".")
         {% endfor %}
     </ul>
 
-    ---
-
-    _Powered by [Pluto.jl](https://github.com/fonsp/Pluto.jl)_
+    <br>
+    <br>
+    <br>
     """
 
     exists = any(["index.html", "index.md", "index.jl"]) do f
