@@ -82,6 +82,8 @@ function generate_baked_html(notebook::Pluto.Notebook; version=nothing)
         version = try_get_pluto_version()
     end
 
+    @info "Using CDN with Pluto version" version
+
     cdn_root = "https://cdn.jsdelivr.net/gh/fonsp/Pluto.jl@$(string(version))/frontend/"
 
     cdnified = replace(
