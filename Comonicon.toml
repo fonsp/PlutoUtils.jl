@@ -1,6 +1,0 @@
-name = "pluto"
-
-[install]
-completion=true
-quiet=false
-optimize=2
