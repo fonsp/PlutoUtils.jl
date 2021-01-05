@@ -9,6 +9,51 @@ using Sockets
 
 myhash = base64encode ∘ sha256
 
+function github_action(; export_dir=".", copy_to_temp_before_running=false)
+    mkpath(export_dir)
+
+    jlfiles = vcat(map(walkdir(".")) do (root, dirs, files)
+        map(
+            filter(files) do file
+                occursin(".jl", file)
+            end
+            ) do file
+            joinpath(root, file)
+        end
+    end...)
+    notebookfiles = filter(jlfiles) do f
+        readline(f) == "### A Pluto.jl notebook ###"
+    end
+    export_paths(notebookfiles; export_dir=export_dir, copy_to_temp_before_running=copy_to_temp_before_running)
+
+    create_default_index(;export_dir=export_dir)
+end
+
+function create_default_index(;export_dir=".")
+    default_md = """
+    Notebooks:
+
+    <ul>
+        {% for page in site.static_files %}
+            {% if page.extname == ".html" %}
+                <li><a href="{{ page.path | absolute_url }}">{{ page.name }}</a></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+
+    ---
+
+    _Powered by [Pluto.jl](https://github.com/fonsp/Pluto.jl)_
+    """
+
+    exists = any(["index.html", "index.md", "index.jl"]) do f
+        joinpath(export_dir, f) |> isfile
+    end
+    if !exists
+        write(joinpath(export_dir, "index.md"), default_md)
+    end
+end
+
 function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_temp_before_running=true, kwargs...)
     export_dir = Pluto.tamepath(export_dir)
 
