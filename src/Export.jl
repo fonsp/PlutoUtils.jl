@@ -9,9 +9,6 @@ using Sockets
 
 myhash = base64encode ∘ sha256
 
-
-
-
 function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_temp_before_running=true, kwargs...)
     export_dir = Pluto.tamepath(export_dir)
 
@@ -38,9 +35,11 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_te
             path * ".html"
         end
 
-        write(joinpath(export_dir, html_filename), html_contents)
+        export_path = joinpath(export_dir, html_filename)
+        mkpath(dirname(export_path))
+        write(export_path, html_contents)
 
-        @info "Written to $(joinpath(export_dir, html_filename))"
+        @info "Written to $(export_path)"
 
         Pluto.SessionActions.shutdown(session, nb)
     end
