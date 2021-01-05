@@ -77,7 +77,7 @@ function generate_baked_html(notebook::Pluto.Notebook; version=nothing)
 
     original = read(Pluto.project_relative_path("frontend", "editor.html"), String)
 
-    if version isa nothing
+    if version isa Nothing
         version = try_get_pluto_version()
     end
 
