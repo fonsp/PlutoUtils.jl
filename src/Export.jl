@@ -9,7 +9,7 @@ using Sockets
 
 myhash = base64encode ∘ sha256
 
-function github_action(; export_dir=".", offer_binder=false, copy_to_temp_before_running=false)
+function github_action(; export_dir=".", offer_binder=false, copy_to_temp_before_running=false, disable_ui=true)
     mkpath(export_dir)
 
     jlfiles = vcat(map(walkdir(".")) do (root, dirs, files)
@@ -24,7 +24,7 @@ function github_action(; export_dir=".", offer_binder=false, copy_to_temp_before
     notebookfiles = filter(jlfiles) do f
         readline(f) == "### A Pluto.jl notebook ###"
     end
-    export_paths(notebookfiles; export_dir=export_dir, copy_to_temp_before_running=copy_to_temp_before_running, offer_binder=offer_binder)
+    export_paths(notebookfiles; export_dir=export_dir, copy_to_temp_before_running=copy_to_temp_before_running, offer_binder=offer_binder, disable_ui=disable_ui)
 
     create_default_index(;export_dir=export_dir)
 end
@@ -54,7 +54,7 @@ function create_default_index(;export_dir=".")
     end
 end
 
-function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_temp_before_running=true, offer_binder=false, kwargs...)
+function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_temp_before_running=true, offer_binder=false, disable_ui=true, kwargs...)
     export_dir = Pluto.tamepath(export_dir)
 
     options = Pluto.Configuration.from_flat_kwargs(; kwargs...)
@@ -89,7 +89,7 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_te
         else
             "undefined"
         end
-        html_contents = generate_baked_html(nb; notebookfile_js=notebookfile_js)
+        html_contents = generate_baked_html(nb; notebookfile_js=notebookfile_js, disable_ui=disable_ui)
 
         write(export_path, html_contents)
         if offer_binder && !isfile(export_jl_path)
@@ -130,7 +130,7 @@ function try_get_pluto_version()
 end
 
 
-function generate_baked_html(notebook::Pluto.Notebook; version=nothing, notebookfile_js="undefined")
+function generate_baked_html(notebook::Pluto.Notebook; version=nothing, notebookfile_js="undefined", disable_ui=true)
     state = Pluto.notebook_to_js(notebook)
     statefile64 = base64encode() do io
         Pluto.pack(io, state)
@@ -156,7 +156,7 @@ function generate_baked_html(notebook::Pluto.Notebook; version=nothing, notebook
         """
         <script data-pluto-file="launch-parameters">
         window.pluto_notebookfile = $(notebookfile_js)
-        window.pluto_disable_ui = true
+        window.pluto_disable_ui = $(repr(disable_ui))
         window.pluto_statefile = "data:;base64,$(statefile64)"
         </script>
         <!-- [automatically generated launch parameters can be inserted here] -->
