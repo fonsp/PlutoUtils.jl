@@ -85,7 +85,7 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_te
 
 
         notebookfile_js = if offer_binder
-            basename(path)
+            repr(basename(path))
         else
             "undefined"
         end
