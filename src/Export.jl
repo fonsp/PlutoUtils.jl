@@ -7,6 +7,11 @@ using Base64
 using SHA
 using Sockets
 
+
+using Logging: global_logger
+using GitHubActions: GitHubActionsLogger
+get(ENV, "GITHUB_ACTIONS", "false") == "true" && global_logger(GitHubActionsLogger())
+
 myhash = base64encode ∘ sha256
 
 function github_action(; export_dir=".", offer_binder=false, copy_to_temp_before_running=false, disable_ui=true)
@@ -61,44 +66,48 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_te
     session = Pluto.ServerSession(;options=options)
 
     for path in notebook_paths
-        @info "Opening $(path)"
-        hash = myhash(read(path))
-        if copy_to_temp_before_running
-            newpath = tempname()
-            write(newpath, read(path))
-        else
-            newpath = path
+        try
+            @info "Opening $(path)"
+            hash = myhash(read(path))
+            if copy_to_temp_before_running
+                newpath = tempname()
+                write(newpath, read(path))
+            else
+                newpath = path
+            end
+            nb = Pluto.SessionActions.open(session, newpath; run_async=false)
+
+            @info "Ready $(path)" hash
+
+            html_filename = if endswith(path, ".jl")
+                path[1:end-3] * ".html"
+            else
+                path * ".html"
+            end
+
+            export_path = joinpath(export_dir, html_filename)
+            export_jl_path = joinpath(export_dir, path)
+            mkpath(dirname(export_path))
+
+
+            notebookfile_js = if offer_binder
+                repr(basename(path))
+            else
+                "undefined"
+            end
+            html_contents = generate_baked_html(nb; notebookfile_js=notebookfile_js, disable_ui=disable_ui)
+
+            write(export_path, html_contents)
+            if offer_binder && !isfile(export_jl_path)
+                write(export_jl_path, read(path))
+            end
+
+            @info "Written to $(export_path)"
+
+            Pluto.SessionActions.shutdown(session, nb)
+        catch e
+            @error "$path failed to run" exception=(e, catch_backtrace())
         end
-        nb = Pluto.SessionActions.open(session, newpath; run_async=false)
-
-        @info "Ready $(path)" hash
-
-        html_filename = if endswith(path, ".jl")
-            path[1:end-3] * ".html"
-        else
-            path * ".html"
-        end
-
-        export_path = joinpath(export_dir, html_filename)
-        export_jl_path = joinpath(export_dir, path)
-        mkpath(dirname(export_path))
-
-
-        notebookfile_js = if offer_binder
-            repr(basename(path))
-        else
-            "undefined"
-        end
-        html_contents = generate_baked_html(nb; notebookfile_js=notebookfile_js, disable_ui=disable_ui)
-
-        write(export_path, html_contents)
-        if offer_binder && !isfile(export_jl_path)
-            write(export_jl_path, read(path))
-        end
-
-        @info "Written to $(export_path)"
-
-        Pluto.SessionActions.shutdown(session, nb)
     end
     @info "Done"
 end
