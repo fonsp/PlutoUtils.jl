@@ -142,8 +142,9 @@ function generate_baked_html(notebook::Pluto.Notebook; version=nothing)
     result = replace(cdnified, 
         "<!-- [automatically generated launch parameters can be inserted here] -->" => 
         """
-        <script>
+        <script data-pluto-file="launch-parameters">
         window.pluto_statefile = "data:;base64,$(statefile64)"
+        window.pluto_hideui = true
         </script>
         <!-- [automatically generated launch parameters can be inserted here] -->
         """
