@@ -59,7 +59,7 @@ function create_default_index(;export_dir=".")
     end
 end
 
-function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_temp_before_running=true, offer_binder=false, disable_ui=true, kwargs...)
+function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_temp_before_running=false, offer_binder=false, disable_ui=true, kwargs...)
     export_dir = Pluto.tamepath(export_dir)
 
     options = Pluto.Configuration.from_flat_kwargs(; kwargs...)
