@@ -65,9 +65,9 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_te
     options = Pluto.Configuration.from_flat_kwargs(; kwargs...)
     session = Pluto.ServerSession(;options=options)
 
-    for path in notebook_paths
+    for (i, path) in enumerate(notebook_paths)
         try
-            @info "Opening $(path)"
+            @info "[$(i)/$(length(notebook_paths))] Opening $(path)"
             hash = myhash(read(path))
             if copy_to_temp_before_running
                 newpath = tempname()
