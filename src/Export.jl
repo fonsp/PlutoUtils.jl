@@ -14,7 +14,7 @@ get(ENV, "GITHUB_ACTIONS", "false") == "true" && global_logger(GitHubActionsLogg
 
 myhash = base64encode ∘ sha256
 
-function github_action(; export_dir=".", offer_binder=false, copy_to_temp_before_running=false, disable_ui=true, bind_server_url=nothing)
+function github_action(; export_dir=".", offer_binder=false, copy_to_temp_before_running=false, disable_ui=true, bind_server_url=nothing, binder_url=nothing)
     mkpath(export_dir)
 
     jlfiles = vcat(map(walkdir(".")) do (root, dirs, files)
@@ -29,7 +29,7 @@ function github_action(; export_dir=".", offer_binder=false, copy_to_temp_before
     notebookfiles = filter(jlfiles) do f
         readline(f) == "### A Pluto.jl notebook ###"
     end
-    export_paths(notebookfiles; export_dir=export_dir, copy_to_temp_before_running=copy_to_temp_before_running, offer_binder=offer_binder, disable_ui=disable_ui, bind_server_url=bind_server_url)
+    export_paths(notebookfiles; export_dir=export_dir, copy_to_temp_before_running=copy_to_temp_before_running, offer_binder=offer_binder, disable_ui=disable_ui, bind_server_url=bind_server_url, binder_url=binder_url)
 
     create_default_index(;export_dir=export_dir)
 end
@@ -59,7 +59,7 @@ function create_default_index(;export_dir=".")
     end
 end
 
-function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_temp_before_running=false, offer_binder=false, disable_ui=true, bind_server_url=nothing, kwargs...)
+function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_temp_before_running=false, offer_binder=false, disable_ui=true, bind_server_url=nothing, binder_url=nothing, kwargs...)
     export_dir = Pluto.tamepath(export_dir)
 
     options = Pluto.Configuration.from_flat_kwargs(; kwargs...)
@@ -100,7 +100,12 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", copy_to_te
             else
                 "undefined"
             end
-            html_contents = generate_baked_html(nb; notebookfile_js=notebookfile_js, disable_ui=disable_ui, bind_server_url_js=bind_server_url_js)
+            binder_url_js = if binder_url !== nothing
+                repr(binder_url)
+            else
+                "undefined"
+            end
+            html_contents = generate_baked_html(nb; notebookfile_js=notebookfile_js, disable_ui=disable_ui, bind_server_url_js=bind_server_url_js, binder_url_js=binder_url_js)
 
             write(export_path, html_contents)
             if offer_binder && !isfile(export_jl_path)
@@ -144,7 +149,7 @@ function try_get_pluto_version()
 end
 
 
-function generate_baked_html(notebook::Pluto.Notebook; version=nothing, notebookfile_js="undefined", bind_server_url_js="undefined", disable_ui=true)
+function generate_baked_html(notebook::Pluto.Notebook; version=nothing, notebookfile_js="undefined", bind_server_url_js="undefined", binder_url_js="undefined", disable_ui=true)
     state = Pluto.notebook_to_js(notebook)
     statefile64 = base64encode() do io
         Pluto.pack(io, state)
@@ -173,6 +178,7 @@ function generate_baked_html(notebook::Pluto.Notebook; version=nothing, notebook
         window.pluto_disable_ui = $(disable_ui ? "true" : "false")
         window.pluto_statefile = "data:;base64,$(statefile64)"
         window.pluto_bind_server_url = $(bind_server_url_js)
+        window.pluto_binder_url = $(binder_url_js)
         </script>
         <!-- [automatically generated launch parameters can be inserted here] -->
         """
