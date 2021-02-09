@@ -86,8 +86,6 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", output_dir
             end
 
             mkpath(output_dir)
-            @show output_dir
-            @show isdir(output_dir)
             export_path = joinpath(output_dir, basename(html_filename))
             export_jl_path = joinpath(export_dir, path)
 
