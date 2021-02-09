@@ -14,7 +14,7 @@ get(ENV, "GITHUB_ACTIONS", "false") == "true" && global_logger(GitHubActionsLogg
 
 myhash = base64encode ∘ sha256
 
-function github_action(; export_dir=".", output_dir=".", generate_default_index=false, offer_binder=false, copy_to_temp_before_running=false, disable_ui=true, bind_server_url=nothing, binder_url=nothing, kwargs...)
+function github_action(; export_dir=".", output_dir=".", generate_default_index=true, offer_binder=false, copy_to_temp_before_running=false, disable_ui=true, bind_server_url=nothing, binder_url=nothing, kwargs...)
     mkpath(export_dir)
 
     jlfiles = vcat(map(walkdir(".")) do (root, dirs, files)
