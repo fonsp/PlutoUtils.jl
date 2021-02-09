@@ -14,7 +14,7 @@ get(ENV, "GITHUB_ACTIONS", "false") == "true" && global_logger(GitHubActionsLogg
 
 myhash = base64encode ∘ sha256
 
-function github_action(; export_dir=".", output_dir=".", generate_default_index=false, offer_binder=false, copy_to_temp_before_running=false, disable_ui=true, bind_server_url=nothing, binder_url=nothing)
+function github_action(; export_dir=".", output_dir=".", generate_default_index=false, offer_binder=false, copy_to_temp_before_running=false, disable_ui=true, bind_server_url=nothing, binder_url=nothing, kwargs...)
     mkpath(export_dir)
 
     jlfiles = vcat(map(walkdir(".")) do (root, dirs, files)
@@ -29,7 +29,7 @@ function github_action(; export_dir=".", output_dir=".", generate_default_index=
     notebookfiles = filter(jlfiles) do f
         readline(f) == "### A Pluto.jl notebook ###"
     end
-    export_paths(notebookfiles; export_dir=export_dir, output_dir=output_dir, copy_to_temp_before_running=copy_to_temp_before_running, offer_binder=offer_binder, disable_ui=disable_ui, bind_server_url=bind_server_url, binder_url=binder_url)
+    export_paths(notebookfiles; export_dir=export_dir, output_dir=output_dir, copy_to_temp_before_running=copy_to_temp_before_running, offer_binder=offer_binder, disable_ui=disable_ui, bind_server_url=bind_server_url, binder_url=binder_url, kwargs...)
 
     generate_default_index && create_default_index(;export_dir=export_dir)
 end
@@ -85,9 +85,11 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", output_dir
                 path * ".html"
             end
 
+            mkpath(output_dir)
+            @show output_dir
+            @show isdir(output_dir)
             export_path = joinpath(output_dir, basename(html_filename))
             export_jl_path = joinpath(export_dir, path)
-            mkpath(dirname(export_path))
 
 
             notebookfile_js = if offer_binder
