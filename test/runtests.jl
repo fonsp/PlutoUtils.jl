@@ -10,10 +10,10 @@ list_files_recursive(dir=".") = let
     relpath.(paths, [dir])
 end
 
+original_dir1 = joinpath(@__DIR__, "dir1")
 make_test_dir() = let
-    original = joinpath(@__DIR__, "dir1")
     new = tempname(cleanup=false)
-    cp(original, new)
+    cp(original_dir1, new)
     new
 end
 
@@ -31,7 +31,7 @@ end
 
     github_action()
 
-    @test sort(list_files_recursive()) == sort([
+    @test sort(list_files_recursive()) == sort([ 
         "index.md",
         "a.jl",
         "a.html",
@@ -41,6 +41,9 @@ end
         "subdir/c.plutojl",
         "subdir/c.html",
     ])
+
+    # Test whether the notebook file did not get changed
+    @test read(joinpath(original_dir1, "a.jl")) == read(joinpath(test_dir, "a.jl"))
 end
 
 

@@ -45,31 +45,49 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", baked_stat
 
     for (i, path) in enumerate(notebook_paths)
         try
+            export_jl_path = let
+                relative = path
+                joinpath(export_dir, relative)
+            end
+            export_html_path = let
+                relative = without_pluto_file_extension(path) * ".html"
+                joinpath(export_dir, relative)
+            end
+            export_statefile_path = let
+                relative = without_pluto_file_extension(path) * ".plutostate"
+                joinpath(export_dir, relative)
+            end
+            mkpath(dirname(export_jl_path))
+            mkpath(dirname(export_html_path))
+            mkpath(dirname(export_statefile_path))
+
+            jl_contents = read(path)
+
+
+
             @info "[$(i)/$(length(notebook_paths))] Opening $(path)"
-            hash = myhash(read(path))
+
             if copy_to_temp_before_running
                 newpath = tempname()
-                write(newpath, read(path))
+                write(newpath, jl_contents)
             else
                 newpath = path
             end
-            # open and run the notebook
+
+            hash = myhash(jl_contents)
+            # open and run the notebook (TODO: tell pluto not to write to the notebook file)
             notebook = Pluto.SessionActions.open(session, newpath; run_async=false)
+            # get the state object
+            state = Pluto.notebook_to_js(notebook)
+            # shut down the notebook
+            Pluto.SessionActions.shutdown(session, notebook)
 
             @info "Ready $(path)" hash
-
-            html_path = without_pluto_file_extension(path) * ".html"
-
-            export_path = joinpath(export_dir, html_path)
-            export_jl_path = joinpath(export_dir, path)
-            mkpath(dirname(export_path))
+            
 
 
             notebookfile_js = if offer_binder
-                if !isfile(export_jl_path)
-                    write(export_jl_path, read(path))
-                end
-                repr(basename(path))
+                repr(basename(export_jl_path))
             else
                 "undefined"
             end
@@ -79,20 +97,18 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", baked_stat
             else
                 "undefined"
             end
+
             binder_url_js = if binder_url !== nothing
                 repr(binder_url)
             else
                 "undefined"
             end
 
-            state = Pluto.notebook_to_js(notebook)
-
             statefile_js = if !baked_state
-                statefile_path = without_pluto_file_extension(path) * ".plutostate"
-                open(statefile_path, "w") do io
+                open(export_statefile_path, "w") do io
                     Pluto.pack(io, state)
                 end
-                repr(basename(statefile_path))
+                repr(basename(export_statefile_path))
             else
                 statefile64 = base64encode() do io
                     Pluto.pack(io, state)
@@ -102,22 +118,26 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", baked_stat
             end
 
 
+
             html_contents = generate_html(; 
                 notebookfile_js=notebookfile_js, statefile_js=statefile_js,
                 bind_server_url_js=bind_server_url_js, binder_url_js=binder_url_js,
                 disable_ui=disable_ui
             )
 
-            write(export_path, html_contents)
+            write(export_html_path, html_contents)
             
-            @info "Written to $(export_path)"
+            if (var"we need the .jl file" = offer_binder) || 
+                (var"the .jl file is already there and might have changed" = isfile(export_jl_path))
+                write(export_jl_path, jl_contents)
+            end
 
-            Pluto.SessionActions.shutdown(session, notebook)
+            @info "Written to $(export_html_path)"
         catch e
             @error "$path failed to run" exception=(e, catch_backtrace())
         end
     end
-    @info "Done"
+    @info "All notebooks processed"
 end
 
 
