@@ -31,7 +31,7 @@ Search recursively for all Pluto notebooks in the current folder, and for each n
 
 Additional keyword arguments will be passed on to the configuration of `Pluto`. See [`Pluto.Configuration`](@ref) for more info.
 """
-function export_paths(notebook_paths::Vector{String}; export_dir=".", baked_state=true, copy_to_temp_before_running=false, offer_binder=false, disable_ui=true, bind_server_url=nothing, binder_url=nothing, kwargs...)
+function export_paths(notebook_paths::Vector{String}; export_dir=".", baked_state=true, offer_binder=false, disable_ui=true, bind_server_url=nothing, binder_url=nothing, kwargs...)
     # TODO how can we fix the binder version to a Pluto version? We can't use the Pluto hash because the binder repo is different from Pluto.jl itself. We can use Pluto versions, tag those on the binder repo.
     if offer_binder && binder_url === nothing
         @warn "We highly recommend setting the `binder_url` keyword argument with a fixed commit hash. The default is not fixed to a specific version, and the binder button will break when Pluto updates.
@@ -67,16 +67,9 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", baked_stat
 
             @info "[$(i)/$(length(notebook_paths))] Opening $(path)"
 
-            if copy_to_temp_before_running
-                newpath = tempname()
-                write(newpath, jl_contents)
-            else
-                newpath = path
-            end
-
             hash = myhash(jl_contents)
             # open and run the notebook (TODO: tell pluto not to write to the notebook file)
-            notebook = Pluto.SessionActions.open(session, newpath; run_async=false)
+            notebook = Pluto.SessionActions.open(session, path; run_async=false)
             # get the state object
             state = Pluto.notebook_to_js(notebook)
             # shut down the notebook
