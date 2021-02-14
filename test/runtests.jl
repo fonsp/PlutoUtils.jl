@@ -70,13 +70,16 @@ end
         "index.md",
 
         "a.html",
+        "a.jl",
         "a.plutostate",
 
         "b.html",
+        "b.pluto.jl",
         "b.plutostate",
 
 
         "subdir/c.html",
+        "subdir/c.plutojl",
         "subdir/c.plutostate",
     ])
 
