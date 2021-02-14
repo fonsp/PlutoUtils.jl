@@ -17,36 +17,10 @@ julia> ]
 (v1.5) pkg> add https://github.com/fonsp/PlutoUtils.jl
 ```
 
----
-
-
-## Pluto CLI
-
-_Launch [Pluto directly from the command line!_
-
-When installed, you can launch Pluto using the shell command `pluto`, and check the available options using `pluto --help`.
-
-If you haven't already, install PlutoUtils:
-
-```julia
-julia> ]
-(v1.5) pkg> add https://github.com/fonsp/PlutoUtils.jl
-```
-
-then add `~/.julia/bin` to your `PATH`. Or you can add the path automatically via
-
-```julia
-julia> using PlutoUtils; PlutoUtils.comonicon_install_path()
-```
-
-To enable auto-completion in ZSH you need to add `~/.julia/completions` to your `FPATH` and then add 
-`autoload -Uz compinit && compinit` to your `.zshrc`.
-
 ## Future
 
 This will contain:
 
--   [x] the Pluto CLI - https://github.com/Roger-luo/PlutoCLI.jl/issues/2
 -   [ ] notebook conversion tools: https://github.com/vdayanand/Jupyter2Pluto.jl
 
 and several deployment methods:
