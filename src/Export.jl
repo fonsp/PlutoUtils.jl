@@ -62,27 +62,22 @@ function export_paths(src_and_dst::AbstractVector{Pair{String,String}}; baked_st
             export_html_path = without_pluto_file_extension(export_jl_path) * ".html"
             export_statefile_path = without_pluto_file_extension(export_jl_path) * ".plutostate"
             mkpath(dirname(export_jl_path))
-            mkpath(dirname(export_html_path))
-            mkpath(dirname(export_statefile_path))
-
-            jl_contents = read(src)
-
-
 
             @info "[$(i)/$(length(src_and_dst))] Opening $(src)"
 
-            hash = myhash(jl_contents)
-            # open and run the notebook (TODO: tell pluto not to write to the notebook file)
-            notebook = Pluto.SessionActions.open(session, src; run_async=false)
+            # copy the source file to build folder and open the new file with Pluto (Pluto may change this file).
+            cp(src, export_jl_path)
+            # open and run the notebook
+            notebook = Pluto.SessionActions.open(session, export_jl_path; run_async=false)
             # get the state object
             state = Pluto.notebook_to_js(notebook)
             # shut down the notebook
             Pluto.SessionActions.shutdown(session, notebook)
 
+            jl_contents = read(src)
+            hash = myhash(jl_contents)
             @info "Ready $(src)" hash
             
-
-
             notebookfile_js = if offer_binder
                 repr(basename(export_jl_path))
             else
@@ -114,8 +109,6 @@ function export_paths(src_and_dst::AbstractVector{Pair{String,String}}; baked_st
                 "\"data:;base64,$(statefile64)\""
             end
 
-
-
             html_contents = generate_html(; 
                 notebookfile_js=notebookfile_js, statefile_js=statefile_js,
                 bind_server_url_js=bind_server_url_js, binder_url_js=binder_url_js,
@@ -123,12 +116,6 @@ function export_paths(src_and_dst::AbstractVector{Pair{String,String}}; baked_st
             )
 
             write(export_html_path, html_contents)
-            
-            if (var"we need the .jl file" = offer_binder) || 
-                (var"the .jl file is already there and might have changed" = isfile(export_jl_path))
-                write(export_jl_path, jl_contents)
-            end
-
             @info "Written to $(export_html_path)"
         catch e
             @error "$src failed to run" exception=(e, catch_backtrace())

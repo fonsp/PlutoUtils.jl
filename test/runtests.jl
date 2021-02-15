@@ -21,7 +21,7 @@ end
 @testset "Basic github action" begin
     test_dir = make_test_dir()
     @show test_dir
-    inpath = joinpath(test_dir)
+    inpath = test_dir
     outpath = joinpath(test_dir, "build")
     @test sort(list_files_recursive(inpath)) == sort([
         "a.jl",
@@ -37,19 +37,22 @@ end
 
     @test sort(list_files_recursive(outpath)) == sort([ 
         "index.md",
+        "a.jl",
         "a.html",
+        "b.pluto.jl",
         "b.html",
         "subdir/c.html",
+        "subdir/c.plutojl",
     ])
 
     # Test whether the notebook file did not get changed
-    @test_broken read(joinpath(original_dir1, "a.jl")) == read(joinpath(test_dir, "a.jl"))
+    @test read(joinpath(original_dir1, "a.jl")) == read(joinpath(test_dir, "a.jl"))
 end
 
 
 @testset "Separate state files" begin
     test_dir = make_test_dir()
-    inpath = joinpath(test_dir)
+    inpath = test_dir
     outpath = joinpath(test_dir, "build")
     @show test_dir
     @test sort(list_files_recursive(inpath)) == sort([
