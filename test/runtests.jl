@@ -90,3 +90,73 @@ end
     @test occursin("a.plutostate", read(joinpath(outpath, "a.html"), String))
 end
 
+@testset "Basic github action" begin
+    test_dir = make_test_dir()
+    @show test_dir
+    inpath = test_dir
+    @test sort(list_files_recursive(inpath)) == sort([
+        "a.jl",
+        "b.pluto.jl",
+        "notanotebook.jl",
+        "subdir/c.plutojl",
+    ])
+
+    github_action(;
+        notebook_dir=inpath,
+        )
+
+    @test sort(list_files_recursive(inpath)) == sort([ 
+        "index.md",
+        "a.jl",
+        "a.html",
+        "notanotebook.jl",
+        "b.pluto.jl",
+        "b.html",
+        "subdir/c.html",
+        "subdir/c.plutojl",
+    ])
+
+    # Test whether the notebook file did not get changed
+    @test read(joinpath(original_dir1, "a.jl")) == read(joinpath(test_dir, "a.jl"))
+end
+
+
+@testset "Separate state files" begin
+    test_dir = make_test_dir()
+    inpath = test_dir
+    @show test_dir
+    @test sort(list_files_recursive(inpath)) == sort([
+        "a.jl",
+        "b.pluto.jl",
+        "notanotebook.jl",
+        "subdir/c.plutojl",
+    ])
+
+    github_action(;
+        notebook_dir=inpath,
+        offer_binder=true,
+        baked_state=false,
+    )
+
+    @test sort(list_files_recursive(inpath)) == sort([
+        "index.md",
+
+        "a.html",
+        "a.jl",
+        "a.plutostate",
+        "notanotebook.jl",
+
+        "b.html",
+        "b.pluto.jl",
+        "b.plutostate",
+
+
+        "subdir/c.html",
+        "subdir/c.plutojl",
+        "subdir/c.plutostate",
+    ])
+
+    @test occursin("a.jl", read(joinpath(inpath, "a.html"), String))
+    @test occursin("a.plutostate", read(joinpath(inpath, "a.html"), String))
+end
+

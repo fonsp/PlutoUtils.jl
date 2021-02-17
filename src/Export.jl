@@ -58,6 +58,7 @@ function export_paths(src_and_dst::AbstractVector{Pair{String,String}}; baked_st
 
     for (i, (src, dst)) in enumerate(src_and_dst)
         try
+            # the `jl` file offered by binder
             export_jl_path = joinpath(dst, basename(src))
             export_html_path = without_pluto_file_extension(export_jl_path) * ".html"
             export_statefile_path = without_pluto_file_extension(export_jl_path) * ".plutostate"
@@ -66,9 +67,11 @@ function export_paths(src_and_dst::AbstractVector{Pair{String,String}}; baked_st
             @info "[$(i)/$(length(src_and_dst))] Opening $(src)"
 
             # copy the source file to build folder and open the new file with Pluto (Pluto may change this file).
-            cp(src, export_jl_path)
-            # open and run the notebook
-            notebook = Pluto.SessionActions.open(session, export_jl_path; run_async=false)
+            if src !== export_jl_path
+                cp(src, export_jl_path)
+            end
+            # open and run the notebook. In case `src` == `dst`, we do not open the notebook directly.
+            notebook = safe_open(session, src; run_async=false)
             # get the state object
             state = Pluto.notebook_to_js(notebook)
             # shut down the notebook
@@ -190,14 +193,15 @@ function scan_plutonotebooks_relativepath(notebook_dir::String)
 end
 
 """
-    github_action(; notebook_dir, export_dir, generate_default_index=true, kwargs...)
+    github_action(; notebook_dir=".", export_dir=notebook_dir, generate_default_index=true, kwargs...)
 
 A convenience function to call from a GitHub Action.
 It will scan the pluto notebooks in `notebook_dir` recursively and generate output files to `export_dir`.
 See [`export_paths`](@ref) for the list of keyword arguments.
 """
-function github_action(; notebook_dir, export_dir, generate_default_index=true, kwargs...)
+function github_action(; notebook_dir=".", export_dir=notebook_dir, generate_default_index=true, kwargs...)
     notebook_dir = Pluto.tamepath(notebook_dir)
+    @info "using input and output folders: notebook_dir = $(notebook_dir), export_dir = $(export_dir)"
     export_dir = Pluto.tamepath(export_dir)
     notebookfiles = scan_plutonotebooks_relativepath(notebook_dir)
     # generate output folders
@@ -291,9 +295,11 @@ function try_get_pluto_version()
     end
 end
 
-
-
-
-
+function safe_open(session, path; kwargs...)
+    dest = tempname()
+    cp(path, dest)
+    chmod(dest, 0o664)
+    Pluto.SessionActions.open(session, dest; kwargs...)
+end
 
 end
