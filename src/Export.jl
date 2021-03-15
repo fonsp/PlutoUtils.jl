@@ -13,7 +13,9 @@ using Sockets
 myhash = base64encode ∘ sha256
 
 """
-Search recursively for all Pluto notebooks in the current folder, and for each notebook:
+    export_paths(src_and_dst; kwargs...)
+
+For each notebook specified in `src_and_dst`:
 - Run the notebook and wait for all cells to finish
 - Export the state object
 - Create a .html file with the same name as the notebook, which has:
@@ -22,7 +24,9 @@ Search recursively for all Pluto notebooks in the current folder, and for each n
   - Extra functionality enabled, such as hidden UI, binder button, and a live bind server
 
 # Arguments
-- `export_dir::String="."`: folder to write generated HTML files to (will create directories to preserve the input folder structure). Leave at the default `"."` to generate each HTML file in the same folder as the notebook file.
+- `src_and_dst::AbstractVector{Pair{String,String}}`: a list of `source notebook (input) => destination folder (output)` pair.
+
+# Keyword Arguments
 - `disable_ui::Bool=true`: hide all buttons and toolbars to make it look like an article.
 - `baked_state::Bool=true`: base64-encode the state object and write it inside the .html file. If `false`, a separate `.plutostate` file is generated.
 - `offer_binder::Bool=false`: show a "Run on Binder" button on the notebooks. Use `binder_url` to choose a binder repository.
@@ -30,55 +34,53 @@ Search recursively for all Pluto notebooks in the current folder, and for each n
 - `bind_server_url::Union{Nothing,String}=nothing`: e.g. `https://bindserver.mycoolproject.org/` TODO docs
 
 Additional keyword arguments will be passed on to the configuration of `Pluto`. See [`Pluto.Configuration`](@ref) for more info.
+
+# Example
+```julia
+export_paths([
+    "/home/xxx/a.jl"=>"/tmp/build", 
+    "/home/xxx/subfolder/b.jl"=>"/tmp/build/subfolder"
+    ],
+    offer_binder=true,
+    )
+```
 """
-function export_paths(notebook_paths::Vector{String}; export_dir=".", baked_state=true, offer_binder=false, disable_ui=true, bind_server_url=nothing, binder_url=nothing, kwargs...)
+function export_paths(src_and_dst::AbstractVector{Pair{String,String}}; baked_state=true,
+                      offer_binder=false, disable_ui=true, bind_server_url=nothing, binder_url=nothing, kwargs...)
     # TODO how can we fix the binder version to a Pluto version? We can't use the Pluto hash because the binder repo is different from Pluto.jl itself. We can use Pluto versions, tag those on the binder repo.
     if offer_binder && binder_url === nothing
         @warn "We highly recommend setting the `binder_url` keyword argument with a fixed commit hash. The default is not fixed to a specific version, and the binder button will break when Pluto updates.
         
         This might be automated in the future."
     end
-    export_dir = Pluto.tamepath(export_dir)
-
     options = Pluto.Configuration.from_flat_kwargs(; kwargs...)
     session = Pluto.ServerSession(;options=options)
 
-    for (i, path) in enumerate(notebook_paths)
+    for (i, (src, dst)) in enumerate(src_and_dst)
         try
-            export_jl_path = let
-                relative = path
-                joinpath(export_dir, relative)
-            end
-            export_html_path = let
-                relative = without_pluto_file_extension(path) * ".html"
-                joinpath(export_dir, relative)
-            end
-            export_statefile_path = let
-                relative = without_pluto_file_extension(path) * ".plutostate"
-                joinpath(export_dir, relative)
-            end
+            # the `jl` file offered by binder
+            export_jl_path = joinpath(dst, basename(src))
+            export_html_path = without_pluto_file_extension(export_jl_path) * ".html"
+            export_statefile_path = without_pluto_file_extension(export_jl_path) * ".plutostate"
             mkpath(dirname(export_jl_path))
-            mkpath(dirname(export_html_path))
-            mkpath(dirname(export_statefile_path))
 
-            jl_contents = read(path)
+            @info "[$(i)/$(length(src_and_dst))] Opening $(src)"
 
-
-
-            @info "[$(i)/$(length(notebook_paths))] Opening $(path)"
-
-            hash = myhash(jl_contents)
-            # open and run the notebook (TODO: tell pluto not to write to the notebook file)
-            notebook = Pluto.SessionActions.open(session, path; run_async=false)
+            # copy the source file to build folder and open the new file with Pluto (Pluto may change this file).
+            if src !== export_jl_path
+                cp(src, export_jl_path)
+            end
+            # open and run the notebook. In case `src` == `dst`, we do not open the notebook directly.
+            notebook = safe_open(session, src; run_async=false)
             # get the state object
             state = Pluto.notebook_to_js(notebook)
             # shut down the notebook
             Pluto.SessionActions.shutdown(session, notebook)
 
-            @info "Ready $(path)" hash
+            jl_contents = read(src)
+            hash = myhash(jl_contents)
+            @info "Ready $(src)" hash
             
-
-
             notebookfile_js = if offer_binder
                 repr(basename(export_jl_path))
             else
@@ -110,8 +112,6 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", baked_stat
                 "\"data:;base64,$(statefile64)\""
             end
 
-
-
             html_contents = generate_html(; 
                 notebookfile_js=notebookfile_js, statefile_js=statefile_js,
                 bind_server_url_js=bind_server_url_js, binder_url_js=binder_url_js,
@@ -119,15 +119,9 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", baked_stat
             )
 
             write(export_html_path, html_contents)
-            
-            if (var"we need the .jl file" = offer_binder) || 
-                (var"the .jl file is already there and might have changed" = isfile(export_jl_path))
-                write(export_jl_path, jl_contents)
-            end
-
             @info "Written to $(export_html_path)"
         catch e
-            @error "$path failed to run" exception=(e, catch_backtrace())
+            @error "$src failed to run" exception=(e, catch_backtrace())
         end
     end
     @info "All notebooks processed"
@@ -182,29 +176,46 @@ using Logging: global_logger
 using GitHubActions: GitHubActionsLogger
 get(ENV, "GITHUB_ACTIONS", "false") == "true" && global_logger(GitHubActionsLogger())
 
-"A convenience function to call from a GitHub Action. See [`export_paths`](@ref) for the list of keyword arguments."
-function github_action(; export_dir=".", generate_default_index=true, kwargs...)
-    export_dir = Pluto.tamepath(export_dir)
-
-    mkpath(export_dir)
-
+function scan_plutonotebooks_relativepath(notebook_dir::String)
+    nbase = splitpath(notebook_dir) |> length
     jlfiles = vcat(
-        map(walkdir(".")) do (root, dirs, files)
+        map(walkdir(notebook_dir)) do (root, dirs, files)
             map(filter(endswith_pluto_file_extension, files)) do file
-                joinpath(root, file)
+                fullpath = joinpath(root, file)
+                joinpath(splitpath(fullpath)[nbase+1:end]...)
             end
         end...
     )
     notebookfiles = filter(jlfiles) do f
-        readline(f) == "### A Pluto.jl notebook ###"
+        readline(joinpath(notebook_dir, f)) == "### A Pluto.jl notebook ###"
     end
-    export_paths(notebookfiles; export_dir=export_dir, kwargs...)
+    return notebookfiles
+end
 
-    generate_default_index && create_default_index(;export_dir=export_dir)
+"""
+    github_action(; notebook_dir=".", export_dir=notebook_dir, generate_default_index=true, kwargs...)
+
+A convenience function to call from a GitHub Action.
+It will scan the pluto notebooks in `notebook_dir` recursively and generate output files to `export_dir`.
+See [`export_paths`](@ref) for the list of keyword arguments.
+"""
+function github_action(; notebook_dir=".", export_dir=notebook_dir, generate_default_index=true, kwargs...)
+    notebook_dir = Pluto.tamepath(notebook_dir)
+    @info "using input and output folders: notebook_dir = $(notebook_dir), export_dir = $(export_dir)"
+    export_dir = Pluto.tamepath(export_dir)
+    notebookfiles = scan_plutonotebooks_relativepath(notebook_dir)
+    # generate output folders
+    src_and_dst = map(notebookfiles) do relativepath
+        joinpath(notebook_dir, relativepath) => joinpath(export_dir, dirname(relativepath))
+    end
+
+    export_paths(src_and_dst; kwargs...)
+
+    generate_default_index && create_default_index(; export_dir=export_dir)
 end
 
 "If no index.hmtl, index.md, index.jl file exists, create a default index.md that GitHub Pages will render into an index page, listing all notebooks."
-function create_default_index(;export_dir=".")
+function create_default_index(; export_dir)
     default_md = """
     Notebooks:
 
@@ -221,11 +232,14 @@ function create_default_index(;export_dir=".")
     <br>
     """
 
+    @info "Generating default index..."
     exists = any(["index.html", "index.md", ("index"*e for e in pluto_file_extensions)...]) do f
         joinpath(export_dir, f) |> isfile
     end
     if !exists
-        write(joinpath(export_dir, "index.md"), default_md)
+        index_path = joinpath(export_dir, "index.md")
+        write(index_path, default_md)
+        @info "Index written to $(index_path)"
     end
 end
 
@@ -281,9 +295,11 @@ function try_get_pluto_version()
     end
 end
 
-
-
-
-
+function safe_open(session, path; kwargs...)
+    dest = tempname()
+    cp(path, dest)
+    chmod(dest, 0o664)
+    Pluto.SessionActions.open(session, dest; kwargs...)
+end
 
 end
