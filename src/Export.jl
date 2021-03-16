@@ -28,10 +28,11 @@ Search recursively for all Pluto notebooks in the current folder, and for each n
 - `offer_binder::Bool=false`: show a "Run on Binder" button on the notebooks. Use `binder_url` to choose a binder repository.
 - `binder_url::Union{Nothing,String}=nothing`: e.g. `https://mybinder.org/v2/gh/mitmath/18S191/e2dec90` TODO docs
 - `bind_server_url::Union{Nothing,String}=nothing`: e.g. `https://bindserver.mycoolproject.org/` TODO docs
+- `cache_dir::Union{Nothing,String}=nothing`: if provided, use this directory to read and write cached notebook states. Caches will be indexed by notebook hash, but you need to take care to invalidate the cache when Pluto or this export script updates. Useful in combination with https://github.com/actions/cache.
 
 Additional keyword arguments will be passed on to the configuration of `Pluto`. See [`Pluto.Configuration`](@ref) for more info.
 """
-function export_paths(notebook_paths::Vector{String}; export_dir=".", baked_state=true, offer_binder=false, disable_ui=true, bind_server_url=nothing, binder_url=nothing, kwargs...)
+function export_paths(notebook_paths::Vector{String}; export_dir::String=".", baked_state::Bool=true, offer_binder::Bool=false, disable_ui::Bool=true, bind_server_url::Union{Nothing,String}=nothing, binder_url::Union{Nothing,String}=nothing, cache_dir::Union{Nothing,String}=nothing, kwargs...)
     # TODO how can we fix the binder version to a Pluto version? We can't use the Pluto hash because the binder repo is different from Pluto.jl itself. We can use Pluto versions, tag those on the binder repo.
     if offer_binder && binder_url === nothing
         @warn "We highly recommend setting the `binder_url` keyword argument with a fixed commit hash. The default is not fixed to a specific version, and the binder button will break when Pluto updates.
@@ -42,6 +43,8 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", baked_stat
 
     options = Pluto.Configuration.from_flat_kwargs(; kwargs...)
     session = Pluto.ServerSession(;options=options)
+
+    cache_dir !== nothing && mkpath(cache_dir)
 
     for (i, path) in enumerate(notebook_paths)
         try
@@ -68,16 +71,30 @@ function export_paths(notebook_paths::Vector{String}; export_dir=".", baked_stat
             @info "[$(i)/$(length(notebook_paths))] Opening $(path)"
 
             hash = myhash(jl_contents)
-            # open and run the notebook (TODO: tell pluto not to write to the notebook file)
-            notebook = Pluto.SessionActions.open(session, path; run_async=false)
-            # get the state object
-            state = Pluto.notebook_to_js(notebook)
-            # shut down the notebook
-            Pluto.SessionActions.shutdown(session, notebook)
+
+            cached_state = try_fromcache(cache_dir, hash)
+            if cached_state !== nothing
+                state = cached_state
+            else
+                # open and run the notebook (TODO: tell pluto not to write to the notebook file)
+                local notebook = Pluto.SessionActions.open(session, path; run_async=false)
+                # get the state object
+                state = Pluto.notebook_to_js(notebook)
+                # shut down the notebook
+                Pluto.SessionActions.shutdown(session, notebook)
+
+                if cache_dir !== nothing
+                    try
+                        open(cache_filename(cache_dir, hash), "w") do io
+                            Pluto.pack(io, state)
+                        end
+                    catch e
+                        @warn "Failed to write to cache file" hash exception=(e,catch_backtrace())
+                    end
+                end
+            end
 
             @info "Ready $(path)" hash
-            
-
 
             notebookfile_js = if offer_binder
                 repr(basename(export_jl_path))
@@ -173,7 +190,20 @@ function generate_html(;
     return result
 end
 
+cache_filename(cache_dir::String, hash::String) = joinpath(cache_dir, HTTP.URIs.escapeuri(hash) * ".jlstate")
 
+function try_fromcache(cache_dir::String, hash::String)
+    p = cache_filename(cache_dir, hash)
+    if isfile(p)
+        try
+            open(Pluto.unpack, p, "r")
+        catch e
+            @warn "Failed to load statefile from cache" hash exception=(e,catch_backtrace())
+        end
+    end
+end
+
+try_fromcache(cache_dir::Nothing, hash) = nothing
 
 
 ## GITHUB ACTION

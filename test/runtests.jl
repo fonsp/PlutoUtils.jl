@@ -1,5 +1,6 @@
 using PlutoUtils.Export
 using Test
+using Logging
 
 flatmap(args...) = vcat(map(args...)...)
 
@@ -20,7 +21,9 @@ end
 
 @testset "Basic github action" begin
     test_dir = make_test_dir()
-    @show test_dir
+    cache_dir = tempname(cleanup=false)
+
+    @show test_dir cache_dir
     cd(test_dir)
     @test sort(list_files_recursive()) == sort([
         "a.jl",
@@ -29,7 +32,9 @@ end
         "subdir/c.plutojl",
     ])
 
-    github_action()
+    github_action(
+        cache_dir=cache_dir,
+    )
 
     @test sort(list_files_recursive()) == sort([ 
         "index.md",
@@ -44,6 +49,21 @@ end
 
     # Test whether the notebook file did not get changed
     @test read(joinpath(original_dir1, "a.jl")) == read(joinpath(test_dir, "a.jl"))
+
+    # Test cache
+    @show list_files_recursive(cache_dir)
+    @test length(list_files_recursive(cache_dir)) >= 2
+
+    # Test runtime to check that the cache works
+    second_runtime = with_logger(NullLogger()) do
+        .1 * @elapsed for i in 1:10
+            github_action(
+                cache_dir=cache_dir,
+            )
+        end
+    end
+    @show second_runtime
+    @test second_runtime < 1.0
 end
 
 
