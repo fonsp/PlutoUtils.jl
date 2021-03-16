@@ -74,6 +74,7 @@ function export_paths(notebook_paths::Vector{String}; export_dir::String=".", ba
 
             cached_state = try_fromcache(cache_dir, hash)
             if cached_state !== nothing
+                @info "Loaded from cache, skipping notebook run" hash
                 state = cached_state
             else
                 # open and run the notebook (TODO: tell pluto not to write to the notebook file)
