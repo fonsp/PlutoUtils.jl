@@ -1,7 +1,7 @@
 name = "PlutoUtils"
 uuid = "a5ec66cb-57bb-4ae5-9259-3342d9ed6c94"
 license = "Unlicense"
-authors = ["Fons van der Plas <fonsvdplas@gmail.com> and contributors"]
+authors = ["Fons van der Plas <fons@plutojl.org> and contributors"]
 version = "0.1.0"
 
 [deps]
