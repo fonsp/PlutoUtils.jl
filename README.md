@@ -1,4 +1,4 @@
-# PlutoUtils.jl
+# PlutoUtils.jl *(archived, unsupported)*
 
 Nifty scripts to go with [Pluto.jl](https://github.com/fonsp/Pluto.jl).
 
